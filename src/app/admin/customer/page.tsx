@@ -10,6 +10,7 @@ type CustomerData = {
   stamps: number;
   lastVisit: string;
   redeemed: number;
+  name: string | null; // display_name from customers table
 };
 
 const TOTAL = STAMPS_REQUIRED;
@@ -31,22 +32,22 @@ function extractPhoneDigits(value: string): string {
 export default function AdminCustomerPage() {
   const router = useRouter();
   const loadedQueryPhoneRef = useRef(false);
-  const [password, setPassword] = useState("");
+  const [token, setToken] = useState("");
   const [phoneInput, setPhoneInput] = useState("");
   const [customer, setCustomer] = useState<CustomerData | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [showScanner, setShowScanner] = useState(false);
+  const [showScanner, setShowScanner] = useState(true); // auto-open scanner on load
 
   useEffect(() => {
-    const pw = sessionStorage.getItem("adminPw");
+    const pw = sessionStorage.getItem("adminToken"); // renamed key from adminPw to adminToken
     if (!pw) {
       router.replace(`/admin${window.location.search}`);
       return;
     }
-    setPassword(pw);
+    setToken(pw);
   }, [router]);
 
   function formatDisplay(digits: string) {
@@ -77,8 +78,8 @@ export default function AdminCustomerPage() {
     try {
       const res = await fetch("/api/admin/lookup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: digits, password }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ phone: digits }),
       });
 
       if (res.status === 401) {
@@ -112,7 +113,7 @@ export default function AdminCustomerPage() {
   }
 
   useEffect(() => {
-    if (!password || loadedQueryPhoneRef.current) {
+    if (!token || loadedQueryPhoneRef.current) {
       return;
     }
 
@@ -125,7 +126,7 @@ export default function AdminCustomerPage() {
     loadedQueryPhoneRef.current = true;
     setPhoneInput(formatDisplay(digits));
     void loadCustomerByDigits(digits);
-  }, [password]);
+  }, [token]);
 
   async function handleScan(scannedValue: string) {
     const digits = extractPhoneDigits(scannedValue);
@@ -146,13 +147,20 @@ export default function AdminCustomerPage() {
     try {
       const res = await fetch("/api/admin/stamp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: customer.phone.replace(/\D/g, ""), password }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ phone: customer.phone.replace(/\D/g, "") }),
       });
       if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
       const data = await res.json();
       setCustomer(data);
       setMessage(data.stamps >= TOTAL ? "Stamp added! Reward unlocked!" : "Stamp added!");
+      // auto-reset UI after 1200ms so scanner is ready for next customer
+      setTimeout(() => {
+        setCustomer(null);
+        setPhoneInput("");
+        setMessage("");
+        setShowScanner(true);
+      }, 1200);
     } catch {
       setError("Failed to add stamp.");
     } finally {
@@ -167,8 +175,8 @@ export default function AdminCustomerPage() {
     try {
       const res = await fetch("/api/admin/remove-stamp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: customer.phone.replace(/\D/g, ""), password }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ phone: customer.phone.replace(/\D/g, "") }),
       });
       if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
       if (!res.ok) {
@@ -193,8 +201,8 @@ export default function AdminCustomerPage() {
     try {
       const res = await fetch("/api/admin/redeem", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: customer.phone.replace(/\D/g, ""), password }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ phone: customer.phone.replace(/\D/g, "") }),
       });
       if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
       if (!res.ok) {
@@ -223,7 +231,7 @@ export default function AdminCustomerPage() {
         {/* Header */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => { sessionStorage.removeItem("adminPw"); router.push("/admin"); }}
+            onClick={() => { sessionStorage.removeItem("adminToken"); router.push("/admin"); }}
             className="text-sm"
             style={{ color: "var(--brown-light)" }}
           >
@@ -310,6 +318,7 @@ export default function AdminCustomerPage() {
           >
             {/* Customer Info */}
             <div className="space-y-1">
+              {customer.name && <p className="font-semibold">{customer.name}</p>}
               <p className="font-semibold" style={{ color: "var(--brown-dark)" }}>
                 {displayPhone}
               </p>

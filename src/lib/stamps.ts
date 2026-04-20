@@ -5,6 +5,7 @@ export type CustomerRecord = {
   stamps: number;
   lastVisit: string;
   redeemed: number;
+  name: string | null; // display_name from customers table
 };
 
 type ShopRow = {
@@ -51,11 +52,12 @@ function isoNow(): string {
   return new Date().toISOString();
 }
 
-function toCustomerRecord(card: LoyaltyCardRow): CustomerRecord {
+function toCustomerRecord(card: LoyaltyCardRow, displayName: string | null = null): CustomerRecord {
   return {
     stamps: card.stamp_count,
     lastVisit: card.last_stamp_at ? card.last_stamp_at.split("T")[0] : todayString(),
     redeemed: card.reward_count,
+    name: displayName,
   };
 }
 
@@ -216,10 +218,11 @@ export async function getCustomer(phone: string): Promise<CustomerRecord | null>
       stamps: 0,
       lastVisit: todayString(),
       redeemed: 0,
+      name: customer.display_name, // include display_name even when no card yet
     };
   }
 
-  return toCustomerRecord(card);
+  return toCustomerRecord(card, customer.display_name); // pass display_name from customers row
 }
 
 export async function upsertCustomer(phone: string): Promise<CustomerRecord> {
