@@ -230,7 +230,7 @@ export default function AdminCustomerPage() {
     : "";
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-start px-6 py-10">
+    <main className="min-h-screen overflow-y-auto flex flex-col items-center justify-start px-6 py-10">
       <div className="w-full max-w-sm space-y-6">
 
         {/* Header */}
@@ -349,11 +349,11 @@ export default function AdminCustomerPage() {
 
             {/* Stamp grid */}
             <div>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {Array.from({ length: TOTAL }).map((_, i) => (
                   <div
                     key={i}
-                    className="w-full aspect-square rounded-full flex items-center justify-center text-base"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base mx-auto"
                     style={{
                       background: i < customer.stamps ? "var(--stamp-filled)" : "var(--stamp-empty)",
                       color: i < customer.stamps ? "#fff" : "var(--brown-light)",
@@ -410,7 +410,7 @@ export default function AdminCustomerPage() {
             className="text-xs underline w-full text-center"
             style={{ color: "var(--brown-light)" }}
           >
-            {showFullInput ? "Hide full number input" : "Use full number instead"}
+            {showFullInput ? "✕ Cancel" : "Use full number instead"}
           </button>
           {showFullInput && (
             <form onSubmit={handleFullLookup} className="mt-3 space-y-3">
