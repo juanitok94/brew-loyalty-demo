@@ -7,6 +7,7 @@ import { STAMPS_REQUIRED } from "../lib/constants";
 export default function HomePage() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +35,7 @@ export default function HomePage() {
       const res = await fetch("/api/stamps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: digits }),
+        body: JSON.stringify({ phone: digits, name: firstName || undefined }),
       });
       if (!res.ok) throw new Error("Failed");
       router.push(`/card?phone=${encodeURIComponent(digits)}`);
@@ -107,6 +108,14 @@ export default function HomePage() {
               <p className="text-sm text-red-600">{error}</p>
             )}
           </div>
+          <input
+            type="text"
+            placeholder="First name (optional)"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl border text-base outline-none transition-all"
+            style={{ borderColor: "var(--stamp-empty)", background: "#fff", color: "var(--foreground)" }}
+          />
           <button
             type="submit"
             disabled={loading}

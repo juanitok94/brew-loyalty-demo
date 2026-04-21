@@ -402,8 +402,8 @@ export default function AdminCustomerPage() {
           </div>
         )}
 
-        {/* Full number fallback (collapsed by default) */}
-        <div className="pt-2">
+        {/* Full number fallback — hidden once a customer card is loaded */}
+        {!customer && <div className="pt-2">
           <button
             type="button"
             onClick={() => setShowFullInput((v) => !v)}
@@ -439,7 +439,7 @@ export default function AdminCustomerPage() {
               </div>
             </form>
           )}
-        </div>
+        </div>}
 
       </div>
     </main>
