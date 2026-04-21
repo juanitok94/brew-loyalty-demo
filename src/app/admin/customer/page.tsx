@@ -253,9 +253,9 @@ export default function AdminCustomerPage() {
             className="block text-sm font-medium text-center"
             style={{ color: "var(--foreground)" }}
           >
-            Last 4 digits of customer phone
+            Enter Last 4 Digits of Loyal Customer Phone
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full min-w-0">
             <input
               ref={last4Ref}
               type="tel"
