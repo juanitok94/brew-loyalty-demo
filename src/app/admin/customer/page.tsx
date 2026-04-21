@@ -230,7 +230,7 @@ export default function AdminCustomerPage() {
     : "";
 
   return (
-    <main className="min-h-screen overflow-y-auto flex flex-col items-center justify-start px-6 py-10">
+    <main className="min-h-screen overflow-y-auto overflow-x-hidden flex flex-col items-center justify-start px-6 py-10">
       <div className="w-full max-w-sm space-y-6">
 
         {/* Header */}
@@ -265,7 +265,7 @@ export default function AdminCustomerPage() {
               onChange={handleLast4Change}
               maxLength={4}
               disabled={loading}
-              className="flex-1 px-4 py-4 rounded-xl border text-4xl text-center tracking-widest outline-none font-mono disabled:opacity-50"
+              className="flex-1 min-w-0 px-4 py-4 rounded-xl border text-4xl text-center tracking-widest outline-none font-mono disabled:opacity-50"
               style={{
                 borderColor: error ? "#dc2626" : "var(--stamp-empty)",
                 background: "#fff",
