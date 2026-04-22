@@ -6,6 +6,7 @@ import { STAMPS_REQUIRED } from "@/lib/constants";
 
 type CustomerData = {
   phone: string;
+  name: string | null;
   stamps: number;
   lastVisit: string;
   redeemed: number;
@@ -145,8 +146,8 @@ function CardContent() {
             style={{ background: "var(--cream)" }}
           >
             <p className="text-sm font-medium" style={{ color: "var(--brown-light)" }}>
-              {TOTAL - data.stamps} more {TOTAL - data.stamps === 1 ? "coffee" : "coffees"} until
-              your free drink
+              {data.name ? `Hey ${data.name}, ` : ""}
+              {TOTAL - data.stamps} more {TOTAL - data.stamps === 1 ? "coffee" : "coffees"} until your free drink
             </p>
           </div>
         )}
@@ -163,6 +164,9 @@ function CardContent() {
           </div>
           <p className="text-center text-xs mt-4" style={{ color: "var(--brown-light)" }}>
             {data.stamps} / {TOTAL} stamps
+          </p>
+          <p className="text-center text-xs mt-2" style={{ color: "var(--brown-light)" }}>
+            Not valid on smoothies or frappes. One stamp per drink
           </p>
         </div>
 
