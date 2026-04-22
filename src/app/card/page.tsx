@@ -146,7 +146,7 @@ function CardContent() {
             style={{ background: "var(--cream)" }}
           >
             <p className="text-sm font-medium" style={{ color: "var(--brown-light)" }}>
-              {data.name ? `Hey ${data.name}, ` : ""}
+              {data.name ? `Hey ${data.name.charAt(0).toUpperCase() + data.name.slice(1)}, ` : ""}
               {TOTAL - data.stamps} more {TOTAL - data.stamps === 1 ? "coffee" : "coffees"} until your free drink
             </p>
           </div>

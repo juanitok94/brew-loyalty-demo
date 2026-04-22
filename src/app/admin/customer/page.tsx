@@ -325,14 +325,14 @@ export default function AdminCustomerPage() {
             {/* Customer info */}
             <div className="space-y-1">
               {customer.name && (
-                <p className="font-semibold" style={{ color: "var(--brown-dark)" }}>
+                <p className="text-base font-semibold" style={{ color: "var(--brown-dark)" }}>
                   {customer.name}
                 </p>
               )}
-              <p className="font-semibold" style={{ color: "var(--brown-dark)" }}>
+              <p className="text-base font-semibold" style={{ color: "var(--brown-dark)" }}>
                 {displayPhone}
               </p>
-              <p className="text-xs" style={{ color: "var(--brown-light)" }}>
+              <p className="text-sm" style={{ color: "var(--brown-light)" }}>
                 Last visit: {customer.lastVisit} · {customer.redeemed} free drinks earned
               </p>
             </div>
