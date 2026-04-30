@@ -4,6 +4,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Odds Cafe — Loyalty Card",
   description: "Your digital loyalty stamp card for Odds Cafe, West Asheville NC",
+  openGraph: {
+    title: "Odds Cafe — Loyalty Card",
+    description: "Your digital loyalty stamp card for Odds Cafe, West Asheville NC",
+    images: ["/odds-logo.png"],
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
