@@ -204,6 +204,12 @@ Reference for: roles, XP loop, sprint execution, Supabase patterns.
 
 ---
 
+## Project State (April 2026)
+
+Three live loyalty card apps (Odds Cafe, Rowan Coffee, Dynamite Roasting) — repos brew-loyalty-mvp, brew-loyalty-mvp-2, brew-loyalty-mvp-3. Shared Supabase database, separate repos. Each shop has one admin who stamps by entering last 4 digits of customer phone. Onboarding = clone repo + config swap. More shops coming (Bad Manners, Press). No payment layer yet. Odds is live with customers, Rowan and Dynamite launching soon.
+
+---
+
 ## Definition of Done
 
 - Acceptance tests in SESSION-BRIEF pass
