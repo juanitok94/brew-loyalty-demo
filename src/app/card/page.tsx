@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import confetti from "canvas-confetti";
 import { STAMPS_REQUIRED } from "@/lib/constants";
 
 type CustomerData = {
@@ -39,6 +40,7 @@ function CardContent() {
   const [data, setData] = useState<CustomerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const confettiFired = useRef(false);
   async function loadCard(phone: string) {
     const response = await fetch(`/api/stamps?phone=${encodeURIComponent(phone)}`, {
       cache: "no-store",
@@ -85,6 +87,18 @@ function CardContent() {
       window.clearInterval(intervalId);
     };
   }, [rawPhone, router]);
+
+  useEffect(() => {
+    if (data && data.stamps >= TOTAL && !confettiFired.current) {
+      confettiFired.current = true;
+      void confetti({ particleCount: 160, spread: 80, origin: { y: 0.55 } });
+      const t = setTimeout(
+        () => void confetti({ particleCount: 60, spread: 100, origin: { y: 0.4 }, startVelocity: 20 }),
+        600
+      );
+      return () => clearTimeout(t);
+    }
+  }, [data]);
 
   if (loading) {
     return (
