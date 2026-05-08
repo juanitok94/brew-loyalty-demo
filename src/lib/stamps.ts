@@ -35,7 +35,7 @@ type LoyaltyCardRow = {
   updated_at: string;
 };
 
-const DEFAULT_SHOP_SLUG = "odds-cafe";
+const DEFAULT_SHOP_SLUG = process.env.NEXT_PUBLIC_SHOP_SLUG ?? "odds-cafe";
 
 export function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, "");
@@ -252,7 +252,7 @@ export async function addStamp(phone: string): Promise<CustomerRecord> {
     stampDelta: 1,
   });
 
-  return toCustomerRecord(updatedCard);
+  return toCustomerRecord(updatedCard, customer.display_name);
 }
 
 export async function removeStamp(phone: string): Promise<CustomerRecord | null> {
@@ -278,7 +278,7 @@ const updatedCard = await updateCard(card.id, {
   note: "admin_correction",
 });
 
-  return toCustomerRecord(updatedCard);
+  return toCustomerRecord(updatedCard, customer.display_name);
 }
 
 export async function redeemReward(phone: string): Promise<CustomerRecord | null> {
@@ -311,5 +311,5 @@ export async function redeemReward(phone: string): Promise<CustomerRecord | null
     stampDelta: -card.stamp_count,
   });
 
-  return toCustomerRecord(updatedCard);
+  return toCustomerRecord(updatedCard, customer.display_name);
 }

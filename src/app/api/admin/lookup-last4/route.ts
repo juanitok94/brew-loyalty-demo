@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminToken } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-const DEFAULT_SHOP_SLUG = "odds-cafe";
+const DEFAULT_SHOP_SLUG = process.env.NEXT_PUBLIC_SHOP_SLUG ?? "odds-cafe";
 
 type ShopRow = { id: string };
 type CustomerRow = { id: string; phone: string; display_name: string | null };

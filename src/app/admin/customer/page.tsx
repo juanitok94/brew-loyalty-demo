@@ -1,4 +1,3 @@
-// Refactored: primary lookup is last-4 digits; camera scanner removed; collision list added
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -44,7 +43,6 @@ export default function AdminCustomerPage() {
     setToken(stored);
   }, [router]);
 
-  // Auto-focus the 4-digit input once token is ready
   useEffect(() => {
     if (token) last4Ref.current?.focus();
   }, [token]);
@@ -59,7 +57,6 @@ export default function AdminCustomerPage() {
     setTimeout(() => last4Ref.current?.focus(), 50);
   }
 
-  // --- Last-4 lookup (primary flow) ---
   const lookupByLast4 = useCallback(async (digits: string) => {
     setLoading(true);
     setError("");
@@ -85,7 +82,7 @@ export default function AdminCustomerPage() {
       if (data.length === 1) {
         setCustomer(data[0]);
       } else {
-        setCollisions(data); // 2+ matches — show picker
+        setCollisions(data);
       }
     } catch {
       setError("Lookup failed.");
@@ -101,7 +98,7 @@ export default function AdminCustomerPage() {
     setCustomer(null);
     setCollisions([]);
     if (digits.length === 4) {
-      void lookupByLast4(digits); // auto-submit on 4th digit
+      void lookupByLast4(digits);
     }
   }
 
@@ -110,7 +107,6 @@ export default function AdminCustomerPage() {
     if (last4Input.length === 4) void lookupByLast4(last4Input);
   }
 
-  // --- Full phone fallback ---
   async function loadCustomerByDigits(digits: string) {
     if (digits.length !== 10) { setError("Enter a valid 10-digit number."); return; }
     setLoading(true);
@@ -158,7 +154,6 @@ export default function AdminCustomerPage() {
     void loadCustomerByDigits(phoneInput.replace(/\D/g, ""));
   }
 
-  // --- Stamp actions (logic unchanged) ---
   async function addStamp() {
     if (!customer) return;
     setActionLoading(true);
@@ -170,11 +165,13 @@ export default function AdminCustomerPage() {
         body: JSON.stringify({ phone: customer.phone.replace(/\D/g, "") }),
       });
       if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
-      const data = await res.json();
+      const data: CustomerData = await res.json();
       setCustomer(data);
-      setMessage(data.stamps >= TOTAL ? "Stamp added! Reward unlocked!" : "Stamp added!");
-      // Reset to idle after 1200ms — re-focuses 4-digit input for next customer
-      setTimeout(resetToIdle, 1200);
+      setMessage(
+        data.stamps >= TOTAL
+          ? `Stamp added — ${data.stamps} / ${TOTAL} — Reward ready!`
+          : `Stamp added — ${data.stamps} / ${TOTAL} stamps`
+      );
     } catch {
       setError("Failed to add stamp.");
     } finally {
@@ -194,8 +191,9 @@ export default function AdminCustomerPage() {
       });
       if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
       if (!res.ok) { setError((await res.json()).error ?? "Remove stamp failed."); return; }
-      setCustomer(await res.json());
-      setMessage("Stamp removed.");
+      const data: CustomerData = await res.json();
+      setCustomer(data);
+      setMessage(`Stamp removed — ${data.stamps} / ${TOTAL} stamps`);
     } catch {
       setError("Failed to remove stamp.");
     } finally {
@@ -215,8 +213,9 @@ export default function AdminCustomerPage() {
       });
       if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
       if (!res.ok) { setError((await res.json()).error ?? "Redeem failed."); return; }
-      setCustomer(await res.json());
-      setMessage("Reward redeemed! Card reset to 0 stamps.");
+      const data: CustomerData = await res.json();
+      setCustomer(data);
+      setMessage("Reward redeemed — card reset to 0 stamps.");
     } catch {
       setError("Failed to redeem.");
     } finally {
@@ -225,25 +224,22 @@ export default function AdminCustomerPage() {
   }
 
   const isReady = customer && customer.stamps >= TOTAL;
-  const displayPhone = customer
-    ? customer.phone.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, "($1) $2-$3")
-    : "";
+  const last4 = customer?.phone.slice(-4) ?? "";
+  const displayName = customer?.name ?? "Loyalty Customer";
 
   return (
-    <main className="min-h-screen overflow-y-auto overflow-x-hidden flex flex-col items-center justify-start px-6 py-10">
+    <main className="min-h-screen overflow-y-auto overflow-x-hidden flex flex-col items-center justify-start px-6 py-8">
       <div className="w-full max-w-sm space-y-6">
 
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => { sessionStorage.removeItem("adminToken"); router.push("/admin"); }}
-            className="text-sm"
-            style={{ color: "var(--brown-light)" }}
-          >
-            ← Logout
-          </button>
-          <h1 className="text-xl font-bold" style={{ color: "var(--brown-dark)" }}>
-            Odd&apos;s Cafe — Barista
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <img
+            src="/odds-logo.png"
+            alt="Odds Cafe"
+            className="w-14 h-14 object-contain"
+          />
+          <h1 className="text-lg font-bold" style={{ color: "var(--brown-dark)" }}>
+            Odds Perk Pass — Barista
           </h1>
         </div>
 
@@ -253,7 +249,7 @@ export default function AdminCustomerPage() {
             className="block text-sm font-medium text-center"
             style={{ color: "var(--foreground)" }}
           >
-            Enter Last 4 Digits of Loyal Customer Phone
+            Enter Last 4 Digits of Customer Phone
           </label>
           <div className="flex gap-2 w-full min-w-0">
             <input
@@ -283,11 +279,6 @@ export default function AdminCustomerPage() {
           </div>
 
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          {message && (
-            <p className="text-sm font-medium text-center" style={{ color: "#16a34a" }}>
-              {message}
-            </p>
-          )}
         </form>
 
         {/* Collision picker */}
@@ -300,16 +291,16 @@ export default function AdminCustomerPage() {
               Multiple matches — tap the right customer:
             </p>
             {collisions.map((c) => {
-              const last4 = c.phone.slice(-4);
-              const label = c.name ? `${c.name} ••••${last4}` : `••••${last4}`;
+              const formatted = c.phone.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, "($1) $2-$3");
+              const namePart = c.name ?? "Loyalty Customer";
               return (
                 <button
                   key={c.phone}
-                  onClick={() => { setCustomer(c); setCollisions([]); }}
-                  className="w-full text-left px-4 py-3 rounded-xl font-medium text-base"
+                  onClick={() => { setCustomer(c); setCollisions([]); setMessage(""); }}
+                  className="w-full text-left px-4 py-3 rounded-xl font-medium text-sm"
                   style={{ background: "var(--cream)", color: "var(--brown-dark)" }}
                 >
-                  {label}
+                  {namePart} — {formatted} — {c.stamps} / {TOTAL} stamps
                 </button>
               );
             })}
@@ -319,31 +310,30 @@ export default function AdminCustomerPage() {
         {/* Customer card */}
         {customer && (
           <div
-            className="rounded-2xl p-5 space-y-5"
+            className="rounded-2xl p-5 space-y-4"
             style={{ background: "#fff", border: "1.5px solid var(--stamp-empty)" }}
           >
             {/* Customer info */}
-            <div className="space-y-1">
-              {customer.name && (
-                <p className="text-base font-semibold" style={{ color: "var(--brown-dark)" }}>
-                  {customer.name}
-                </p>
-              )}
-              <p className="text-base font-semibold" style={{ color: "var(--brown-dark)" }}>
-                {displayPhone}
+            <div className="space-y-0.5">
+              <p className="text-lg font-semibold" style={{ color: "var(--brown-dark)" }}>
+                {displayName}
               </p>
               <p className="text-sm" style={{ color: "var(--brown-light)" }}>
-                Last visit: {customer.lastVisit} · {customer.redeemed} free drinks earned
+                Phone ending in {last4}
+              </p>
+              <p className="text-xs" style={{ color: "var(--brown-light)" }}>
+                Last visit: {customer.lastVisit} · {customer.redeemed} free drink{customer.redeemed !== 1 ? "s" : ""} earned
               </p>
             </div>
 
             {/* Reward banner */}
             {isReady && (
               <div
-                className="rounded-xl p-3 text-center"
+                className="rounded-xl p-3 text-center space-y-0.5"
                 style={{ background: "var(--brown)", color: "#fff" }}
               >
-                <p className="font-semibold">🎉 Free drink ready to redeem!</p>
+                <p className="font-semibold text-base">Reward ready</p>
+                <p className="text-sm opacity-90">Customer has earned a free drink.</p>
               </div>
             )}
 
@@ -368,78 +358,120 @@ export default function AdminCustomerPage() {
               </p>
             </div>
 
+            {/* Inline success message */}
+            {message && (
+              <p className="text-sm font-medium text-center" style={{ color: "#16a34a" }}>
+                {message}
+              </p>
+            )}
+
             {/* Actions */}
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-3">
-                <button
-                  onClick={addStamp}
-                  disabled={actionLoading || customer.stamps >= TOTAL}
-                  className="flex-1 py-3 rounded-xl font-semibold text-white text-sm disabled:opacity-40"
-                  style={{ background: "var(--brown)" }}
-                >
-                  {actionLoading ? "…" : "+ Add Stamp"}
-                </button>
-                <button
-                  onClick={removeStamp}
-                  disabled={actionLoading || customer.stamps === 0}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                  style={{ background: "var(--cream)", color: "var(--brown-dark)" }}
-                >
-                  {actionLoading ? "…" : "− Remove Stamp"}
-                </button>
-              </div>
-              {isReady && (
-                <button
-                  onClick={redeemReward}
-                  disabled={actionLoading}
-                  className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                  style={{ background: "var(--brown)", color: "#fff" }}
-                >
-                  {actionLoading ? "…" : "Redeem Reward"}
-                </button>
+            <div className="flex flex-col gap-2">
+              {isReady ? (
+                <>
+                  <button
+                    onClick={redeemReward}
+                    disabled={actionLoading}
+                    className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
+                    style={{ background: "var(--brown)", color: "#fff" }}
+                  >
+                    {actionLoading ? "…" : "Redeem Reward"}
+                  </button>
+                  <button
+                    onClick={removeStamp}
+                    disabled={actionLoading}
+                    className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
+                    style={{ background: "var(--cream)", color: "var(--brown-dark)" }}
+                  >
+                    {actionLoading ? "…" : "− Remove Stamp"}
+                  </button>
+                </>
+              ) : (
+                <div className="flex gap-3">
+                  <button
+                    onClick={addStamp}
+                    disabled={actionLoading}
+                    className="flex-1 py-3 rounded-xl font-semibold text-white text-sm disabled:opacity-40"
+                    style={{ background: "var(--brown)" }}
+                  >
+                    {actionLoading ? "…" : "+ Add Stamp"}
+                  </button>
+                  <button
+                    onClick={removeStamp}
+                    disabled={actionLoading || customer.stamps === 0}
+                    className="flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
+                    style={{ background: "var(--cream)", color: "var(--brown-dark)" }}
+                  >
+                    {actionLoading ? "…" : "− Remove Stamp"}
+                  </button>
+                </div>
               )}
             </div>
+
+            {/* Search another */}
+            <button
+              type="button"
+              onClick={resetToIdle}
+              className="w-full text-xs text-center underline pt-1"
+              style={{ color: "var(--brown-light)" }}
+            >
+              Search Another Customer
+            </button>
           </div>
         )}
 
         {/* Full number fallback — hidden once a customer card is loaded */}
-        {!customer && <div className="pt-2">
+        {!customer && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setShowFullInput((v) => !v)}
+              className="text-xs underline w-full text-center"
+              style={{ color: "var(--brown-light)" }}
+            >
+              {showFullInput ? "✕ Cancel" : "Use full number instead"}
+            </button>
+            {showFullInput && (
+              <form onSubmit={handleFullLookup} className="mt-3 space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="(828) 555-0123"
+                    value={phoneInput}
+                    onChange={handlePhoneChange}
+                    className="flex-1 px-4 py-3 rounded-xl border text-base outline-none"
+                    style={{
+                      borderColor: "var(--stamp-empty)",
+                      background: "#fff",
+                      color: "var(--foreground)",
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-3 rounded-xl font-semibold text-white disabled:opacity-60"
+                    style={{ background: "var(--brown)" }}
+                  >
+                    {loading ? "…" : "Look Up"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* Logout — secondary, bottom */}
+        <div className="pt-2 text-center">
           <button
             type="button"
-            onClick={() => setShowFullInput((v) => !v)}
-            className="text-xs underline w-full text-center"
+            onClick={() => { sessionStorage.removeItem("adminToken"); router.push("/admin"); }}
+            className="text-xs underline"
             style={{ color: "var(--brown-light)" }}
           >
-            {showFullInput ? "✕ Cancel" : "Use full number instead"}
+            Logout of barista mode
           </button>
-          {showFullInput && (
-            <form onSubmit={handleFullLookup} className="mt-3 space-y-3">
-              <div className="flex gap-2">
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  placeholder="(828) 555-0123"
-                  value={phoneInput}
-                  onChange={handlePhoneChange}
-                  className="flex-1 px-4 py-3 rounded-xl border text-base outline-none"
-                  style={{
-                    borderColor: "var(--stamp-empty)",
-                    background: "#fff",
-                    color: "var(--foreground)",
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-4 py-3 rounded-xl font-semibold text-white disabled:opacity-60"
-                  style={{ background: "var(--brown)" }}
-                >
-                  {loading ? "…" : "Look Up"}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>}
+        </div>
 
       </div>
     </main>
