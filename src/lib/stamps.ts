@@ -225,9 +225,21 @@ export async function getCustomer(phone: string): Promise<CustomerRecord | null>
 
 export async function upsertCustomer(phone: string, name?: string): Promise<CustomerRecord> {
   const shop = await getDefaultShop();
-  const customer = await getOrCreateCustomer(phone, name);
-  const card = await getOrCreateCard(shop.id, customer.id);
+  let customer = await getOrCreateCustomer(phone, name);
 
+  // For returning customers: persist a newly-submitted non-empty name
+  if (name?.trim() && customer.display_name !== name.trim()) {
+    const trimmed = name.trim();
+    const { data } = await db
+      .from("customers")
+      .update({ display_name: trimmed })
+      .eq("id", customer.id)
+      .select("id, phone, display_name, created_at, updated_at")
+      .single();
+    if (data) customer = data as CustomerRow;
+  }
+
+  const card = await getOrCreateCard(shop.id, customer.id);
   return toCustomerRecord(card, customer.display_name);
 }
 
