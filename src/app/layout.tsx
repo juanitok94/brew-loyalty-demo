@@ -2,18 +2,17 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Odds Cafe — Loyalty Card",
-  description: "Your digital loyalty stamp card for Odds Cafe, West Asheville NC",
+  title: "Your Coffee Shop — Loyalty Card",
+  description: "Digital loyalty stamp card. Proudly independent. North Carolina grown.",
   openGraph: {
-    title: "Odds Cafe — Loyalty Card",
-    description: "Your digital loyalty stamp card for Odds Cafe, West Asheville NC",
-    images: ["/odds-logo.png"],
+    title: "Your Coffee Shop — Loyalty Card",
+    description: "Digital loyalty stamp card. Proudly independent. North Carolina grown.",
   },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Odds Cafe",
+    title: "Loyalty Card",
   },
 };
 

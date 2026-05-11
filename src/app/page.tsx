@@ -58,15 +58,15 @@ export default function HomePage() {
         {/* Logo / Header */}
         <div className="text-center space-y-2">
           <img
-  src="/odds-logo.png"
-  alt="Odds Cafe"
-  className="mx-auto w-24 h-24 object-contain mb-4"
-/>
+            src="/coffee-cup.svg"
+            alt="Your Coffee Shop"
+            className="mx-auto w-24 h-24 object-contain mb-4"
+          />
           <h1 className="text-3xl font-bold tracking-tight text-[#8B1E1E]">
-            Odds Perk Pass Sign-Up
+            Loyalty Card Sign-Up
           </h1>
           <p className="text-base" style={{ color: "var(--brown-light)" }}>
-            West Asheville&apos;s favorite cup
+            Proudly independent. North Carolina grown.
           </p>
         </div>
 

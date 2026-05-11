@@ -35,13 +35,8 @@ export default function AdminCustomerPage() {
   const last4Ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("adminToken");
-    if (!stored) {
-      router.replace(`/admin${window.location.search}`);
-      return;
-    }
-    setToken(stored);
-  }, [router]);
+    setToken("demo");
+  }, []);
 
   useEffect(() => {
     if (token) last4Ref.current?.focus();
@@ -234,12 +229,12 @@ export default function AdminCustomerPage() {
         {/* Header */}
         <div className="flex flex-col items-center gap-1.5 text-center">
           <img
-            src="/odds-logo.png"
-            alt="Odds Cafe"
+            src="/coffee-cup.svg"
+            alt="Your Coffee Shop"
             className="w-14 h-14 object-contain"
           />
           <h1 className="text-lg font-bold" style={{ color: "var(--brown-dark)" }}>
-            Odds Perk Pass — Barista
+            Your Coffee Shop — Barista
           </h1>
         </div>
 

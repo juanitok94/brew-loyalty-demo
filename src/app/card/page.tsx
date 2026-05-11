@@ -132,12 +132,12 @@ function CardContent() {
         {/* Header */}
         <div className="text-center space-y-1">
           <img
-  src="/odds-logo.png"
-  alt="Odds Cafe"
-  className="mx-auto w-20 h-20 object-contain mb-3"
-/>
+            src="/coffee-cup.svg"
+            alt="Your Coffee Shop"
+            className="mx-auto w-20 h-20 object-contain mb-3"
+          />
           <h1 className="text-2xl font-bold text-[#8B1E1E]">
-            Odds Cafe
+            Your Coffee Shop
           </h1>
           <p className="text-sm" style={{ color: "var(--brown-light)" }}>
             {displayPhone}

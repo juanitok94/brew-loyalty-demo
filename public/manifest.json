@@ -1,7 +1,7 @@
 {
-  "name": "Odds Cafe Loyalty",
-  "short_name": "Odds Cafe",
-  "description": "Digital loyalty stamp card for Odds Cafe",
+  "name": "Loyalty Card",
+  "short_name": "Loyalty Card",
+  "description": "Digital loyalty stamp card. Proudly independent. North Carolina grown.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#faf8f5",
