@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { STAMPS_REQUIRED } from "../lib/constants";
 
 export default function HomePage() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [firstName, setFirstName] = useState("");
+  const [nameError, setNameError] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   function formatDisplay(digits: string) {
     if (digits.length <= 3) return digits;
@@ -25,6 +28,10 @@ export default function HomePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (firstName.trim().length < 3) {
+      setNameError("Please enter a name or nickname of at least 3 characters.");
+      return;
+    }
     const digits = phone.replace(/\D/g, "");
     if (digits.length !== 10) {
       setError("Please enter a valid 10-digit US phone number.");
@@ -83,6 +90,30 @@ export default function HomePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label
+              htmlFor="firstName"
+              className="block text-sm font-medium"
+              style={{ color: "var(--foreground)" }}
+            >
+              Your name or nickname
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              placeholder="e.g. Sam, Jazz, or CoffeeKing (min 3 chars)"
+              value={firstName}
+              onChange={(e) => { setFirstName(e.target.value); setNameError(""); }}
+              className="w-full px-4 py-3 rounded-xl border text-base outline-none transition-all"
+              style={{
+                borderColor: nameError ? "#dc2626" : "var(--stamp-empty)",
+                background: "#fff",
+                color: "var(--foreground)",
+              }}
+              autoFocus
+            />
+            {nameError && <p className="text-sm text-red-600">{nameError}</p>}
+          </div>
+          <div className="space-y-2">
+            <label
               htmlFor="phone"
               className="block text-sm font-medium"
               style={{ color: "var(--foreground)" }}
@@ -102,23 +133,33 @@ export default function HomePage() {
                 background: "#fff",
                 color: "var(--foreground)",
               }}
-              autoFocus
             />
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-600">{error}</p>}
           </div>
-          <input
-            type="text"
-            placeholder="First name (optional)"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border text-base outline-none transition-all"
-            style={{ borderColor: "var(--stamp-empty)", background: "#fff", color: "var(--foreground)" }}
-          />
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#8B1E1E]"
+            />
+            <span className="text-sm" style={{ color: "var(--foreground)" }}>
+              I agree to the{" "}
+              <Link
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+                style={{ color: "var(--brown)" }}
+              >
+                Terms &amp; Conditions
+              </Link>
+              . We only use your info to track your loyalty stamps.
+            </span>
+          </label>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !termsAccepted}
             className="w-full py-3 rounded-xl font-semibold text-white text-base transition-opacity disabled:opacity-60"
             style={{ background: "var(--brown)" }}
           >
