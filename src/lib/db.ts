@@ -1,14 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
-
-if (!process.env.SUPABASE_URL) {
-  throw new Error('Missing SUPABASE_URL')
-}
-
-if (!process.env.SUPABASE_SECRET_KEY) {
-  throw new Error('Missing SUPABASE_SECRET_KEY')
-}
-
-export const db = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SECRET_KEY
-)
+// Demo mode — Supabase replaced with in-memory store in stamps.ts.
+// This file kept as a stub so any stray imports don't break the build.
+export const db = null;
