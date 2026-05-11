@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import { STAMPS_REQUIRED } from "@/lib/constants";
+import { CoffeeIcon } from "@/components/CoffeeIcon";
 
 type CustomerData = {
   phone: string;
@@ -18,7 +19,7 @@ const TOTAL = STAMPS_REQUIRED;
 function StampCircle({ filled, index }: { filled: boolean; index: number }) {
   return (
     <div
-      className={`w-12 h-12 rounded-full flex items-center justify-center text-xl transition-all ${
+      className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all ${
         filled ? "stamp-pop" : ""
       }`}
       style={{
@@ -41,16 +42,13 @@ function CardContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const confettiFired = useRef(false);
+
   async function loadCard(phone: string) {
     const response = await fetch(`/api/stamps?phone=${encodeURIComponent(phone)}`, {
       cache: "no-store",
     });
     const payload = await response.json();
-
-    if (!response.ok) {
-      throw new Error(payload?.error ?? "Failed to load card");
-    }
-
+    if (!response.ok) throw new Error(payload?.error ?? "Failed to load card");
     setData(payload);
     setError("");
   }
@@ -66,9 +64,7 @@ function CardContent() {
     const refreshCard = async () => {
       try {
         await loadCard(rawPhone);
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       } catch {
         if (!cancelled) {
           setError("Could not load your card. Please try again.");
@@ -78,9 +74,7 @@ function CardContent() {
     };
 
     void refreshCard();
-    const intervalId = window.setInterval(() => {
-      void refreshCard();
-    }, 5000);
+    const intervalId = window.setInterval(() => void refreshCard(), 5000);
 
     return () => {
       cancelled = true;
@@ -102,7 +96,7 @@ function CardContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-[100dvh] flex items-center justify-center">
         <p style={{ color: "var(--brown-light)" }}>Loading your card...</p>
       </div>
     );
@@ -110,7 +104,7 @@ function CardContent() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-[100dvh] flex flex-col items-center justify-center gap-4 px-5">
         <p className="text-red-600">{error || "No data found."}</p>
         <button
           onClick={() => router.push("/")}
@@ -127,16 +121,17 @@ function CardContent() {
   const displayPhone = rawPhone.replace(/(\d{3})(\d{3})(\d{4})/, "($1) $2-$3");
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      <div className="w-full max-w-sm space-y-6">
+    <main className="min-h-[100dvh] flex flex-col items-center page-wrapper">
+      <div className="w-full max-w-[480px] space-y-5">
+
         {/* Header */}
         <div className="text-center space-y-1">
-          <img
-            src="/coffee-cup.svg"
-            alt="Your Coffee Shop"
-            className="mx-auto w-20 h-20 object-contain mb-3"
+          <CoffeeIcon
+            size={64}
+            className="mx-auto mb-3"
+            style={{ color: "var(--brown)" }}
           />
-          <h1 className="text-2xl font-bold text-[#8B1E1E]">
+          <h1 className="text-2xl font-bold" style={{ color: "var(--brown-dark)" }}>
             Your Coffee Shop
           </h1>
           <p className="text-sm" style={{ color: "var(--brown-light)" }}>
@@ -144,7 +139,7 @@ function CardContent() {
           </p>
         </div>
 
-        {/* Reward Banner */}
+        {/* Progress / reward banner */}
         {isReady ? (
           <div
             className="rounded-2xl p-5 text-center space-y-2 celebrate"
@@ -155,10 +150,7 @@ function CardContent() {
             <p className="text-sm opacity-90">Show this to your barista to redeem</p>
           </div>
         ) : (
-          <div
-            className="rounded-2xl p-4 text-center"
-            style={{ background: "var(--cream)" }}
-          >
+          <div className="rounded-2xl p-4 text-center" style={{ background: "var(--cream)" }}>
             <p className="text-sm font-medium" style={{ color: "var(--brown-light)" }}>
               {data.name ? `Hey ${data.name.charAt(0).toUpperCase() + data.name.slice(1)}, ` : ""}
               {TOTAL - data.stamps} more {TOTAL - data.stamps === 1 ? "coffee" : "coffees"} until your free drink
@@ -166,11 +158,15 @@ function CardContent() {
           </div>
         )}
 
-        {/* Stamp Grid */}
+        {/* Stamp grid */}
         <div
-          className="rounded-2xl p-6"
-          style={{ background: isReady ? "#FFF9F0" : "#fff", border: "1.5px solid var(--stamp-empty)" }}
+          className="rounded-2xl p-5"
+          style={{
+            background: isReady ? "#fdf6ee" : "#fff",
+            border: "1.5px solid var(--stamp-empty)",
+          }}
         >
+          {/* 3-col grid; 64px circles fit comfortably at 360px–480px */}
           <div className="grid grid-cols-3 gap-3 justify-items-center">
             {Array.from({ length: TOTAL }).map((_, i) => (
               <StampCircle key={i} filled={i < data.stamps} index={i} />
@@ -179,34 +175,20 @@ function CardContent() {
           <p className="text-center text-xs mt-4" style={{ color: "var(--brown-light)" }}>
             {data.stamps} / {TOTAL} stamps
           </p>
-          <p className="text-center text-xs mt-2" style={{ color: "var(--brown-light)" }}>
-            Not valid on smoothies or frappes. One stamp per drink
+          <p className="text-center text-xs mt-1" style={{ color: "var(--brown-light)" }}>
+            One stamp per drink · No smoothies or frappes
           </p>
         </div>
 
-        {/* Stats */}
+        {/* Stats row */}
         <div className="flex gap-3">
-          <div
-            className="flex-1 rounded-xl p-3 text-center"
-            style={{ background: "var(--cream)" }}
-          >
-            <p className="text-xl font-bold text-[#8B1E1E]">
-              {data.stamps}
-            </p>
-            <p className="text-xs" style={{ color: "var(--brown-light)" }}>
-              current stamps
-            </p>
+          <div className="flex-1 rounded-xl p-3 text-center" style={{ background: "var(--cream)" }}>
+            <p className="text-xl font-bold" style={{ color: "var(--brown)" }}>{data.stamps}</p>
+            <p className="text-xs" style={{ color: "var(--brown-light)" }}>current stamps</p>
           </div>
-          <div
-            className="flex-1 rounded-xl p-3 text-center"
-            style={{ background: "var(--cream)" }}
-          >
-            <p className="text-xl font-bold text-[#8B1E1E]">
-              {data.redeemed}
-            </p>
-            <p className="text-xs" style={{ color: "var(--brown-light)" }}>
-              free drinks earned
-            </p>
+          <div className="flex-1 rounded-xl p-3 text-center" style={{ background: "var(--cream)" }}>
+            <p className="text-xl font-bold" style={{ color: "var(--brown)" }}>{data.redeemed}</p>
+            <p className="text-xs" style={{ color: "var(--brown-light)" }}>free drinks earned</p>
           </div>
         </div>
 
@@ -217,7 +199,7 @@ function CardContent() {
         <button
           onClick={() => router.push("/")}
           className="w-full text-sm underline"
-          style={{ color: "var(--brown-light)" }}
+          style={{ color: "var(--brown-light)", minHeight: "44px" }}
         >
           ← Back
         </button>
@@ -228,11 +210,13 @@ function CardContent() {
 
 export default function CardPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <p style={{ color: "var(--brown-light)" }}>Loading...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-[100dvh] flex items-center justify-center">
+          <p style={{ color: "var(--brown-light)" }}>Loading...</p>
+        </div>
+      }
+    >
       <CardContent />
     </Suspense>
   );

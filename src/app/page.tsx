@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { STAMPS_REQUIRED } from "../lib/constants";
+import { CoffeeIcon } from "@/components/CoffeeIcon";
 
 export default function HomePage() {
   const router = useRouter();
@@ -52,33 +53,38 @@ export default function HomePage() {
     }
   }
 
+  const inputStyle = {
+    height: "52px",
+    fontSize: "16px", // prevents iOS auto-zoom
+    background: "#fff",
+    color: "var(--foreground)",
+  };
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      <div className="w-full max-w-sm space-y-8">
-        {/* Logo / Header */}
+    <main className="min-h-[100dvh] flex flex-col items-center justify-center page-wrapper">
+      <div className="w-full max-w-[480px] space-y-7">
+
+        {/* Header */}
         <div className="text-center space-y-2">
-          <img
-            src="/coffee-cup.svg"
-            alt="Your Coffee Shop"
-            className="mx-auto w-24 h-24 object-contain mb-4"
+          <CoffeeIcon
+            size={72}
+            className="mx-auto mb-3"
+            style={{ color: "var(--brown)" }}
           />
-          <h1 className="text-3xl font-bold tracking-tight text-[#8B1E1E]">
+          <h1 className="text-3xl font-bold tracking-tight" style={{ color: "var(--brown-dark)" }}>
             Loyalty Card Sign-Up
           </h1>
           <p className="text-base" style={{ color: "var(--brown-light)" }}>
-            Proudly independent. North Carolina grown.
+            NC&apos;s independent cafe loyalty card
           </p>
         </div>
 
-        {/* Card Teaser */}
-        <div
-          className="rounded-2xl p-6 text-center space-y-1"
-          style={{ background: "var(--cream)" }}
-        >
+        {/* Offer teaser */}
+        <div className="rounded-2xl p-5 text-center space-y-1" style={{ background: "var(--cream)" }}>
           <p className="text-sm font-medium" style={{ color: "var(--brown-light)" }}>
             Buy {STAMPS_REQUIRED} coffee/tea drinks
           </p>
-          <p className="text-2xl font-bold text-[#8B1E1E]">
+          <p className="text-2xl font-bold" style={{ color: "var(--brown)" }}>
             Get the 10th FREE
           </p>
           <p className="text-xs" style={{ color: "var(--brown-light)" }}>
@@ -86,14 +92,10 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Phone Form */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label
-              htmlFor="firstName"
-              className="block text-sm font-medium"
-              style={{ color: "var(--foreground)" }}
-            >
+            <label htmlFor="firstName" className="block text-sm font-medium" style={{ color: "var(--foreground)" }}>
               Your name or nickname
             </label>
             <input
@@ -102,23 +104,19 @@ export default function HomePage() {
               placeholder="e.g. Sam, Jazz, or CoffeeKing (min 3 chars)"
               value={firstName}
               onChange={(e) => { setFirstName(e.target.value); setNameError(""); }}
-              className="w-full px-4 py-3 rounded-xl border text-base outline-none transition-all"
+              className="w-full px-4 rounded-xl border outline-none transition-all"
               style={{
+                ...inputStyle,
                 borderColor: nameError ? "#dc2626" : "var(--stamp-empty)",
-                background: "#fff",
-                color: "var(--foreground)",
               }}
               autoFocus
             />
             {nameError && <p className="text-sm text-red-600">{nameError}</p>}
           </div>
+
           <div className="space-y-2">
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium"
-              style={{ color: "var(--foreground)" }}
-            >
-              Enter your phone number to see your card
+            <label htmlFor="phone" className="block text-sm font-medium" style={{ color: "var(--foreground)" }}>
+              Phone number
             </label>
             <input
               id="phone"
@@ -127,21 +125,21 @@ export default function HomePage() {
               placeholder="(828) 555-0123"
               value={phone}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border text-base outline-none transition-all"
+              className="w-full px-4 rounded-xl border outline-none transition-all"
               style={{
+                ...inputStyle,
                 borderColor: error ? "#dc2626" : "var(--stamp-empty)",
-                background: "#fff",
-                color: "var(--foreground)",
               }}
             />
             {error && <p className="text-sm text-red-600">{error}</p>}
           </div>
+
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#8B1E1E]"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded accent-[#bf5a38]"
             />
             <span className="text-sm" style={{ color: "var(--foreground)" }}>
               I agree to the{" "}
@@ -150,23 +148,25 @@ export default function HomePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"
-                style={{ color: "var(--brown)" }}
+                style={{ color: "var(--brown-dark)" }}
               >
                 Terms &amp; Conditions
               </Link>
-              . We only use your info to track your loyalty stamps.
+              . We only use your info to track your stamps.
             </span>
           </label>
+
           <button
             type="submit"
             disabled={loading || !termsAccepted}
-            className="w-full py-3 rounded-xl font-semibold text-white text-base transition-opacity disabled:opacity-60"
-            style={{ background: "var(--brown)" }}
+            className="w-full rounded-xl font-semibold text-white text-base transition-opacity disabled:opacity-50"
+            style={{ background: "var(--brown)", height: "52px" }}
           >
             {loading ? "Loading..." : "See My Card"}
           </button>
-          <p className="text-[14px] text-gray-500 mt-2 text-center">
-            Not valid on smoothies or frappes. One stamp per drink
+
+          <p className="text-sm text-center" style={{ color: "var(--brown-light)" }}>
+            One stamp per drink · No smoothies or frappes
           </p>
         </form>
       </div>

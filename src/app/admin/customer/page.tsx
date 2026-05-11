@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { STAMPS_REQUIRED } from "@/lib/constants";
+import { CoffeeIcon } from "@/components/CoffeeIcon";
 
 type CustomerData = {
   phone: string;
@@ -58,27 +59,21 @@ export default function AdminCustomerPage() {
     setMessage("");
     setCustomer(null);
     setCollisions([]);
-
     try {
       const res = await fetch("/api/admin/lookup-last4", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ last4: digits }),
       });
-
-      if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
+      if (res.status === 401) { router.replace("/admin"); return; }
       if (res.status === 404) {
         setError("No customer found. Use full number below to create one.");
         setShowFullInput(true);
         return;
       }
-
       const data: CustomerData[] = await res.json();
-      if (data.length === 1) {
-        setCustomer(data[0]);
-      } else {
-        setCollisions(data);
-      }
+      if (data.length === 1) setCustomer(data[0]);
+      else setCollisions(data);
     } catch {
       setError("Lookup failed.");
     } finally {
@@ -92,9 +87,7 @@ export default function AdminCustomerPage() {
     setError("");
     setCustomer(null);
     setCollisions([]);
-    if (digits.length === 4) {
-      void lookupByLast4(digits);
-    }
+    if (digits.length === 4) void lookupByLast4(digits);
   }
 
   function handleLast4Submit(e: React.FormEvent) {
@@ -109,15 +102,13 @@ export default function AdminCustomerPage() {
     setMessage("");
     setCustomer(null);
     setCollisions([]);
-
     try {
       const res = await fetch("/api/admin/lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ phone: digits }),
       });
-
-      if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
+      if (res.status === 401) { router.replace("/admin"); return; }
       if (res.status === 404) {
         const createRes = await fetch("/api/stamps", {
           method: "POST",
@@ -159,7 +150,7 @@ export default function AdminCustomerPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ phone: customer.phone.replace(/\D/g, "") }),
       });
-      if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
+      if (res.status === 401) { router.replace("/admin"); return; }
       const data: CustomerData = await res.json();
       setCustomer(data);
       setMessage(
@@ -184,7 +175,7 @@ export default function AdminCustomerPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ phone: customer.phone.replace(/\D/g, "") }),
       });
-      if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
+      if (res.status === 401) { router.replace("/admin"); return; }
       if (!res.ok) { setError((await res.json()).error ?? "Remove stamp failed."); return; }
       const data: CustomerData = await res.json();
       setCustomer(data);
@@ -206,7 +197,7 @@ export default function AdminCustomerPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ phone: customer.phone.replace(/\D/g, "") }),
       });
-      if (res.status === 401) { router.replace(`/admin${window.location.search}`); return; }
+      if (res.status === 401) { router.replace("/admin"); return; }
       if (!res.ok) { setError((await res.json()).error ?? "Redeem failed."); return; }
       const data: CustomerData = await res.json();
       setCustomer(data);
@@ -222,28 +213,24 @@ export default function AdminCustomerPage() {
   const last4 = customer?.phone.slice(-4) ?? "";
   const displayName = customer?.name ?? "Loyalty Customer";
 
+  const actionBtn = "rounded-xl font-semibold text-sm disabled:opacity-40 transition-opacity";
+  const actionH = { minHeight: "52px" };
+
   return (
-    <main className="min-h-screen overflow-y-auto overflow-x-hidden flex flex-col items-center justify-start px-6 py-8">
-      <div className="w-full max-w-sm space-y-6">
+    <main className="min-h-[100dvh] overflow-y-auto flex flex-col items-center page-wrapper">
+      <div className="w-full max-w-[480px] space-y-6">
 
         {/* Header */}
         <div className="flex flex-col items-center gap-1.5 text-center">
-          <img
-            src="/coffee-cup.svg"
-            alt="Your Coffee Shop"
-            className="w-14 h-14 object-contain"
-          />
+          <CoffeeIcon size={48} style={{ color: "var(--brown)" }} />
           <h1 className="text-lg font-bold" style={{ color: "var(--brown-dark)" }}>
             Your Coffee Shop — Barista
           </h1>
         </div>
 
-        {/* Primary: last-4 input */}
+        {/* Last-4 lookup */}
         <form onSubmit={handleLast4Submit} className="space-y-3">
-          <label
-            className="block text-sm font-medium text-center"
-            style={{ color: "var(--foreground)" }}
-          >
+          <label className="block text-sm font-medium text-center" style={{ color: "var(--foreground)" }}>
             Enter Last 4 Digits of Customer Phone
           </label>
           <div className="flex gap-2 w-full min-w-0">
@@ -256,8 +243,10 @@ export default function AdminCustomerPage() {
               onChange={handleLast4Change}
               maxLength={4}
               disabled={loading}
-              className="flex-1 min-w-0 px-4 py-4 rounded-xl border text-4xl text-center tracking-widest outline-none font-mono disabled:opacity-50"
+              className="flex-1 min-w-0 px-4 rounded-xl border text-4xl text-center tracking-widest outline-none font-mono disabled:opacity-50"
               style={{
+                height: "64px",
+                fontSize: "32px",
                 borderColor: error ? "#dc2626" : "var(--stamp-empty)",
                 background: "#fff",
                 color: "var(--foreground)",
@@ -266,13 +255,12 @@ export default function AdminCustomerPage() {
             <button
               type="submit"
               disabled={loading || last4Input.length !== 4}
-              className="px-4 py-4 rounded-xl font-semibold text-white disabled:opacity-40"
-              style={{ background: "var(--brown)" }}
+              className="px-5 rounded-xl font-semibold text-white disabled:opacity-40"
+              style={{ background: "var(--brown)", minHeight: "64px" }}
             >
               {loading ? "…" : "Go"}
             </button>
           </div>
-
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
         </form>
 
@@ -287,15 +275,14 @@ export default function AdminCustomerPage() {
             </p>
             {collisions.map((c) => {
               const formatted = c.phone.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, "($1) $2-$3");
-              const namePart = c.name ?? "Loyalty Customer";
               return (
                 <button
                   key={c.phone}
                   onClick={() => { setCustomer(c); setCollisions([]); setMessage(""); }}
                   className="w-full text-left px-4 py-3 rounded-xl font-medium text-sm"
-                  style={{ background: "var(--cream)", color: "var(--brown-dark)" }}
+                  style={{ background: "var(--cream)", color: "var(--brown-dark)", minHeight: "52px" }}
                 >
-                  {namePart} — {formatted} — {c.stamps} / {TOTAL} stamps
+                  {c.name ?? "Loyalty Customer"} — {formatted} — {c.stamps} / {TOTAL} stamps
                 </button>
               );
             })}
@@ -308,20 +295,14 @@ export default function AdminCustomerPage() {
             className="rounded-2xl p-5 space-y-4"
             style={{ background: "#fff", border: "1.5px solid var(--stamp-empty)" }}
           >
-            {/* Customer info */}
             <div className="space-y-0.5">
-              <p className="text-lg font-semibold" style={{ color: "var(--brown-dark)" }}>
-                {displayName}
-              </p>
-              <p className="text-sm" style={{ color: "var(--brown-light)" }}>
-                Phone ending in {last4}
-              </p>
+              <p className="text-lg font-semibold" style={{ color: "var(--brown-dark)" }}>{displayName}</p>
+              <p className="text-sm" style={{ color: "var(--brown-light)" }}>Phone ending in {last4}</p>
               <p className="text-xs" style={{ color: "var(--brown-light)" }}>
                 Last visit: {customer.lastVisit} · {customer.redeemed} free drink{customer.redeemed !== 1 ? "s" : ""} earned
               </p>
             </div>
 
-            {/* Reward banner */}
             {isReady && (
               <div
                 className="rounded-xl p-3 text-center space-y-0.5"
@@ -338,7 +319,7 @@ export default function AdminCustomerPage() {
                 {Array.from({ length: TOTAL }).map((_, i) => (
                   <div
                     key={i}
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base mx-auto"
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-xl mx-auto"
                     style={{
                       background: i < customer.stamps ? "var(--stamp-filled)" : "var(--stamp-empty)",
                       color: i < customer.stamps ? "#fff" : "var(--brown-light)",
@@ -353,30 +334,29 @@ export default function AdminCustomerPage() {
               </p>
             </div>
 
-            {/* Inline success message */}
             {message && (
               <p className="text-sm font-medium text-center" style={{ color: "#16a34a" }}>
                 {message}
               </p>
             )}
 
-            {/* Actions */}
+            {/* Action buttons */}
             <div className="flex flex-col gap-2">
               {isReady ? (
                 <>
                   <button
                     onClick={redeemReward}
                     disabled={actionLoading}
-                    className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                    style={{ background: "var(--brown)", color: "#fff" }}
+                    className={`w-full ${actionBtn}`}
+                    style={{ background: "var(--brown)", color: "#fff", ...actionH }}
                   >
                     {actionLoading ? "…" : "Redeem Reward"}
                   </button>
                   <button
                     onClick={removeStamp}
                     disabled={actionLoading}
-                    className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                    style={{ background: "var(--cream)", color: "var(--brown-dark)" }}
+                    className={`w-full ${actionBtn}`}
+                    style={{ background: "var(--cream)", color: "var(--brown-dark)", ...actionH }}
                   >
                     {actionLoading ? "…" : "− Remove Stamp"}
                   </button>
@@ -386,16 +366,16 @@ export default function AdminCustomerPage() {
                   <button
                     onClick={addStamp}
                     disabled={actionLoading}
-                    className="flex-1 py-3 rounded-xl font-semibold text-white text-sm disabled:opacity-40"
-                    style={{ background: "var(--brown)" }}
+                    className={`flex-1 ${actionBtn}`}
+                    style={{ background: "var(--brown)", color: "#fff", ...actionH }}
                   >
                     {actionLoading ? "…" : "+ Add Stamp"}
                   </button>
                   <button
                     onClick={removeStamp}
                     disabled={actionLoading || customer.stamps === 0}
-                    className="flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                    style={{ background: "var(--cream)", color: "var(--brown-dark)" }}
+                    className={`flex-1 ${actionBtn}`}
+                    style={{ background: "var(--cream)", color: "var(--brown-dark)", ...actionH }}
                   >
                     {actionLoading ? "…" : "− Remove Stamp"}
                   </button>
@@ -403,26 +383,25 @@ export default function AdminCustomerPage() {
               )}
             </div>
 
-            {/* Search another */}
             <button
               type="button"
               onClick={resetToIdle}
               className="w-full text-xs text-center underline pt-1"
-              style={{ color: "var(--brown-light)" }}
+              style={{ color: "var(--brown-light)", minHeight: "36px" }}
             >
               Search Another Customer
             </button>
           </div>
         )}
 
-        {/* Full number fallback — hidden once a customer card is loaded */}
+        {/* Full number fallback */}
         {!customer && (
           <div className="pt-2">
             <button
               type="button"
               onClick={() => setShowFullInput((v) => !v)}
               className="text-xs underline w-full text-center"
-              style={{ color: "var(--brown-light)" }}
+              style={{ color: "var(--brown-light)", minHeight: "36px" }}
             >
               {showFullInput ? "✕ Cancel" : "Use full number instead"}
             </button>
@@ -435,8 +414,10 @@ export default function AdminCustomerPage() {
                     placeholder="(828) 555-0123"
                     value={phoneInput}
                     onChange={handlePhoneChange}
-                    className="flex-1 px-4 py-3 rounded-xl border text-base outline-none"
+                    className="flex-1 px-4 rounded-xl border outline-none"
                     style={{
+                      height: "52px",
+                      fontSize: "16px",
                       borderColor: "var(--stamp-empty)",
                       background: "#fff",
                       color: "var(--foreground)",
@@ -445,8 +426,8 @@ export default function AdminCustomerPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-3 rounded-xl font-semibold text-white disabled:opacity-60"
-                    style={{ background: "var(--brown)" }}
+                    className="px-4 rounded-xl font-semibold text-white disabled:opacity-60"
+                    style={{ background: "var(--brown)", minHeight: "52px" }}
                   >
                     {loading ? "…" : "Look Up"}
                   </button>
@@ -456,13 +437,13 @@ export default function AdminCustomerPage() {
           </div>
         )}
 
-        {/* Logout — secondary, bottom */}
-        <div className="pt-2 text-center">
+        {/* Logout */}
+        <div className="pt-2 text-center pb-4">
           <button
             type="button"
             onClick={() => { sessionStorage.removeItem("adminToken"); router.push("/admin"); }}
             className="text-xs underline"
-            style={{ color: "var(--brown-light)" }}
+            style={{ color: "var(--brown-light)", minHeight: "36px" }}
           >
             Logout of barista mode
           </button>

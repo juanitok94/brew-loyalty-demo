@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf8f5;
-  --foreground: #1a1210;
-  --brown: #6B4F36;
-  --brown-light: #8B6F56;
-  --brown-dark: #4A3526;
-  --cream: #F5EFE6;
-  --stamp-empty: #E8DDD4;
-  --stamp-filled: #6B4F36;
+  --background: #f2ede4;
+  --foreground: #1a1410;
+  --brown: #bf5a38;
+  --brown-light: #7a6a60;
+  --brown-dark: #3d3530;
+  --cream: #ede6db;
+  --stamp-empty: #d4c4b8;
+  --stamp-filled: #bf5a38;
 }
 
 @theme inline {
@@ -29,16 +29,24 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Safe-area-aware page padding — covers iPhone notch + home bar */
+.page-wrapper {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-top: calc(2.5rem + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
+}
+
 @keyframes stamp-pop {
-  0% { transform: scale(0.5); opacity: 0; }
-  70% { transform: scale(1.15); }
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.15); }
   100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes celebrate {
   0%, 100% { transform: scale(1); }
-  25% { transform: scale(1.05) rotate(-1deg); }
-  75% { transform: scale(1.05) rotate(1deg); }
+  25%       { transform: scale(1.05) rotate(-1deg); }
+  75%       { transform: scale(1.05) rotate(1deg); }
 }
 
 .stamp-pop {
