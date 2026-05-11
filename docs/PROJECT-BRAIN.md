@@ -4,7 +4,7 @@
 > Rule: If it's not in `/docs`, it doesn't exist.
 > Primary source of truth. Update when reality changes.
 
-**Last Updated:** 2026-04-06
+**Last Updated:** May 2026
 **Status:** MVP live. Demo complete. Post-MVP refinement in progress.
 **Repo:** https://github.com/juanitok94/brew-loyalty-mvp
 **Live URL:** https://brew-loyalty-mvp.vercel.app
@@ -31,14 +31,23 @@ Frontend:   Next.js 15 (App Router)
             PWA (manifest, apple-touch-icon)
             Official BrewLoyalty logo (replaces emoji placeholders)
 
-Data:       LanceDB  ← current MVP data store (remote URI + API key, persistence confirmed)
-            Planned: PostgreSQL via Supabase (by choice, when scaling to SaaS)
+Data:       Supabase (Postgres + Auth + Row Level Security)  ← current data store
             src/lib/stamps.ts  ← ALL data access goes through here (never bypass)
 
-Auth:       ODDS_ADMIN_PASSWORD  ← env var, protects all write operations
+Email:      Resend (transactional + weekly digest)
+
+Auth:       Barista PIN + owner password via Supabase Auth
 
 Deploy:     Vercel (auto-deploy on git push)
 ```
+
+## Repos
+
+| Repo | Shop | Status |
+|------|------|--------|
+| brew-loyalty-mvp (mvp) | Odds Cafe | **ACTIVE** — pilot live |
+| brew-loyalty-mvp-2 (mvp-2) | Rowan | Parked — pending Odds validation |
+| brew-loyalty-mvp-3 (mvp-3) | Dynamite Roasting | Parked — pending Odds validation |
 
 ---
 
@@ -49,7 +58,7 @@ Deploy:     Vercel (auto-deploy on git push)
 | Stamp target | **9 stamps** |
 | Card polling interval | **5 seconds** |
 | QR code content | **Full URL** (routes directly to correct page) |
-| Customer identity | **Phone number** (no account, no password) |
+| Customer identity | **Nickname + last 4 digits of phone** (no password) |
 | Scanner method | **Native iPhone camera** (no in-app scanner library) |
 
 ---
@@ -92,13 +101,15 @@ GET  /api/admin/customers?adminPassword={pw}        → all customers
 
 ### ✅ Done (MVP)
 - Full stamp/redeem flow end-to-end
-- LanceDB data store (remote URI, persistence confirmed)
+- Supabase (Postgres) data store — LanceDB retired
 - QR code with full URL routing
 - 5s polling on customer card
 - Official logo replacing emoji placeholders
 - PWA (add to home screen)
 - Demo completed with Audrie (Odd's Cafe) — positive feedback received
-- NDA in progress: Peachy Kean DevOps LLC ↔ Odd's Cafe
+- Signup form: nickname (min 3 chars) + T&C checkbox required
+- Weekly email digest via Resend
+- Barista PIN flow live
 
 ### 🔧 Next (V1.1)
 - Confirm stamp target with Audrie (9 is current)
@@ -136,7 +147,7 @@ GET  /api/admin/customers?adminPassword={pw}        → all customers
 ## 9. Key Files
 
 ```
-src/lib/stamps.ts          ← all data logic — only entry point to LanceDB
+src/lib/stamps.ts          ← all data logic — only entry point to Supabase
 src/app/page.tsx           ← customer card page (polling here)
 src/app/admin/page.tsx     ← barista stamp UI
 docs/PROJECT-BRAIN.md      ← you are here

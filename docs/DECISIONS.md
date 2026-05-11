@@ -4,7 +4,7 @@
 > Anti-amnesia system. Every decision that cost time goes here.
 > When in doubt, check here before re-deciding.
 
-**Last Updated:** 2026-04-06
+**Last Updated:** May 2026
 
 ---
 
@@ -26,30 +26,19 @@
 
 ## Data & State
 
-### LanceDB as data store
-- Lightweight, no server to manage, runs embedded
-- Good fit for read-heavy loyalty data (stamp counts, not transactions)
-- Trade-off: not a traditional relational DB; no complex joins needed so not a problem
-- Note: Vercel KV was considered and documented — LanceDB won for simplicity at MVP scale
-
-### LanceDB is MVP-only — not the long-term system of record
-- Good enough to validate the flow, ship the MVP, and run the demo
-- **Persistence confirmed:** `stamps.ts` connects via remote URI + API key, not a local path. Data survives Vercel redeployments. No data loss risk.
-- **MVP-only by choice**, not due to risk — Supabase/Postgres is the planned migration for SaaS scale (see below)
-
-### Long-term data store: PostgreSQL via Supabase
-- **Why Supabase over raw Postgres:** Managed, fast to stand up, good dashboard, easy for solo operator workflow, easy to outgrow if needed
-- **Why Postgres over LanceDB long-term:** Stronger durability, relational model, multi-location reporting, multi-tenant SaaS growth
-- **Migration approach:** Swap the backend behind `stamps.ts` only — the app and API routes do not change
-- **Minimal target schema:**
-  - `customers` — id, phone, name, location_id, stamps, redeemed_count, last_visit, created_at
+### Supabase (Postgres) as data store — LanceDB retired
+- LanceDB was the original MVP data store; retired after Supabase migration
+- Supabase chosen for: managed Postgres, Auth, Row Level Security, good dashboard, easy solo operator workflow
+- **Why Postgres over LanceDB:** Stronger durability, relational model, multi-location reporting, multi-tenant SaaS growth
+- All data access still goes through `src/lib/stamps.ts` only — API routes and pages were not changed
+- **Current schema:**
+  - `customers` — id, phone, nickname, location_id, stamps, redeemed_count, last_visit, created_at
   - `stamp_transactions` — id, customer_id, action, stamp_delta, resulting_stamps, created_at
   - `locations` — id, slug, name, stamp_target, reward_text, created_at
-- **Timing:** Not urgent — design schema first, then migrate. Not a current emergency.
 
 ### stamps.ts as the only data access layer
 - Pages never import from DB directly
-- One file to swap if we change backends (LanceDB → KV → Postgres)
+- One file to swap if we change backends — already migrated from LanceDB → Supabase/Postgres behind this boundary
 - Rule: all DB calls go through `src/lib/stamps.ts`, nothing else
 
 ### Stamp target = 9
@@ -71,11 +60,18 @@
 
 ## Identity & Auth
 
-### Phone number as customer identity (no account creation)
-- Lowest friction possible — customers won't sign up for a stamp card
-- Phone is memorable and universally available
-- Trade-off: anyone knowing a phone number can look up that card — acceptable, no sensitive data shown
-- Not changing this for V2 unless a customer explicitly requests it
+### Customer identity: nickname + last 4 digits of phone
+- Full phone number is not stored or displayed — only last 4 digits used for lookup
+- Nickname (min 3 chars) provides a human-readable display name and is required at signup
+- Combined lookup key: `nickname + last4` — collision unlikely in practice at single-location scale
+- **Collision handling:** if two customers share the same nickname + last 4 (e.g. two "Sam" with phones ending in 1234), the first registered record is returned. At pilot scale this is acceptable. If collisions become real, append a disambiguator (e.g. nickname + last 4 + created_at tiebreak) without changing the lookup UX.
+- Trade-off: slightly more signup friction than phone-only, but eliminates full phone exposure and feels more personal to the customer
+
+### T&C checkbox required at signup
+- Customers must check a Terms & Conditions checkbox before submitting the signup form
+- Required for basic legal coverage before pilot goes beyond Odds Cafe
+- T&C page exists at `/terms` — linked from the checkbox label
+- No acceptance timestamp stored in MVP; add to `customers` table if legal requires it later
 
 ### Single shared admin password (no per-user auth)
 - Audrie is the only admin at MVP

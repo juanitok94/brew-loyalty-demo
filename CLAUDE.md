@@ -25,9 +25,15 @@ First live pilot: Odds Cafe, West Asheville (Audrie).
 - Customer-facing pages show SHOP branding, not Brew Loyalty branding
 
 ## Current pilot status
-- Odds Cafe: ACTIVE - barista flow live, weekly emails running
-- Dynamite Roasting: warm prospect, not started
+- Odds Cafe (mvp): ACTIVE - barista flow live, weekly emails running
+- Rowan (mvp-2): repo exists, parked pending Odds validation
+- Dynamite Roasting (mvp-3): repo exists, parked pending Odds validation
 - Bad Manners: cold prospect, not started
+
+## Signup form requirements
+- Nickname required (min 3 chars) — used for display and identity
+- T&C checkbox required before submitting
+- Identity: nickname + last 4 digits of phone (collision handling documented in DECISIONS.md)
 
 ## Active sprint
 See SESSION-BRIEF.md in this directory when present.
